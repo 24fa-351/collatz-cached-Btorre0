@@ -4,10 +4,6 @@
 #include <time.h>
 
 
-// place holders
-#define MIN_VALUE 1
-#define MAX_VALUE 500000
-
 // steps in collatz (and the process itself)
 unsigned long long int collatz_function (unsigned long long int n) {
     int numberOfSteps = 0;
@@ -29,16 +25,22 @@ int randomNumber(int min, int max) {
 
 // LRU
 
-
-
-typedef struct cache {
-
-} Cache;
-
 typedef struct Nodes {
+    unsigned long long int key;
+    unsigned long long int valueSteps;
     struct Nodes *prev, *next;
 
 } Nodes;
+
+typedef struct cache {
+    int capacity;
+    int size;
+
+    Nodes *head, *tail;
+    Nodes **hashtable; 
+
+} Cache;
+
 
 // running the collatz
 // open file (testing)
@@ -48,16 +50,20 @@ typedef struct Nodes {
 
 
 int main( int argc , char *argv[] ) {
-    // will later initialize
-    int N;
-    int MIN;
-    int MAX;
-    // 
+    
+    int N = atoi(argv[1]);
+    int MIN = atoi(argv[2]);
+    int MAX = atoi(argv[3]);
+
     if (argc != 4) {
-
+      printf("Usage: %s <N> <MIN> <MAX>\n", argv[0]);
+      return 1;
     }
-
-
+    if (MIN < 1 || MAX > 500000) {
+        printf("Invalid range\n");
+        return 1;
+    }
+    // logic cont.
 
     return 0;
 }
