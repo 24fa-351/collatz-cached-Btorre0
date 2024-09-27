@@ -9,7 +9,7 @@
 #define MAX_VALUE 500000
 
 // steps in collatz (and the process itself)
-unsigned long long int collatz_function (unsigned long int n) {
+unsigned long long int collatz_function (unsigned long long int n) {
     int numberOfSteps = 0;
     while (n != 1) {
         if (n % 2 == 0) {
