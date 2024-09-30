@@ -1,4 +1,3 @@
-
 // Beatriz Torres Archundia
 // CPSC 351 - 08
 // 09.27.24
