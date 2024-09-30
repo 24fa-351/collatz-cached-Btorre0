@@ -1,77 +1,105 @@
+// Beatriz Torres Archundia
+// CPSC 351 - 08
+// 09.27.24
+// btorre0@csu.fullerton.edu
+// Github Username: Btorre0
+// Collatz-Cache
+
 #include <stdio.h>
 #include <stdlib.h>
-#include <limits.h>
 #include <time.h>
+#include <stdint.h>
+#include <string.h>
+#include <limits.h>
 
 #include "cache.h"
-// steps in collatz (and the process itself)
-unsigned long long int collatz_function(unsigned long long int n)
-{
-    int numberOfSteps = 0;
-    while (n != 1)
-    {
-        if (n % 2 == 0)
-        {
-            n /= 2;
-        }
-        else if (n % 2 == 1)
-        {
-            n = (n * 3) + 1;
-        }
-        numberOfSteps++;
-    }
-    return numberOfSteps;
-}
+#include "collatz.h"
 
-// random number
-unsigned long long int RN(int min, unsigned long long int max)
-{
-    int RN = rand() % ((max - min) + 1) + min;
-    return RN;
-}
-
-// first complete the non caching layer:
 int main(int argc, char *argv[])
 {
-
-    if (argc != 4)
+    if (argc != 6)
     {
-        printf("Usage: %s <N> <MIN> <MAX>\n", argv[0]);
+        printf("Usage: %s <N> <MIN> <MAX> <CACHE_POLICY> <CACHE_SIZE>\n", argv[0]);
         return 1;
     }
+    int total_steps = 0;
+    int max_steps = INT_MIN;
+    int min_steps = INT_MAX;
 
     int N = atoi(argv[1]);
     int MIN = atoi(argv[2]);
     int MAX = atoi(argv[3]);
+    char *CACHE_POLICY = argv[4];
+    int CACHE_SIZE = atoi(argv[5]);
 
-    // for testing use
-    if (MIN < 1 || MIN > MAX)
+    int cache_type;
+
+    if (strcmp(CACHE_POLICY, "lru") == 0)
     {
-        printf("Invalid range\n");
+        cache_type = CACHE_LRU;
+    }
+    else if (strcmp(CACHE_POLICY, "lfu") == 0)
+    {
+        cache_type = CACHE_LFU;
+    }
+    else
+    {
+        printf("'lru' or 'lfu'.\n");
         return 1;
     }
+
+    Cache *cache = cache_init(CACHE_SIZE);
+
+    cache->cache_type = cache_type;
+
+    int cache_hits = 0;
+
+    int looks = N;
 
     srand(time(0));
-
-    FILE *file = fopen("collatz.csv", "w");
-
-    if (!file)
-    {
-        printf("Could not open file\n");
-        return 1;
-    }
 
     for (int ix = 0; ix < N; ix++)
     {
 
         unsigned long long int num = RN(MIN, MAX);
 
-        unsigned long long steps = collatz_function(num);
+        uint64_t steps = 0;
 
-        // in file: ( random number, number of steps )
-        fprintf(file, "%llu,%llu\n", num, steps);
+        if (lookup(cache, num, &steps))
+        {
+            cache_hits++;
+
+            printf("Hit: Number: %llu, Steps: %llu\n", num, steps);
+        }
+        else
+        {
+            steps = collatz_function(num);
+
+            cache_enter(cache, num, steps, cache_type);
+            printf("miss: Number: %llu, Steps: %llu\n", num, steps);
+        }
+
+        total_steps += steps;
+
+        if (steps > max_steps)
+        {
+            max_steps = steps;
+        }
+
+        if (steps < min_steps)
+        {
+            min_steps = steps;
+        }
     }
 
-    fclose(file);
+    double percentage = ((double)cache_hits / (double)N) * 100;
+
+    double average_steps = (double)total_steps / N;
+
+    printf("Average number of steps: %.2f\n", average_steps);
+    printf("Percentage of cache hits: %.2f%%\n", percentage);
+
+    cache_free(cache);
+
     return 0;
 }

@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "rn.h": "c",
+        "collatz.h": "c"
+    }
+}
